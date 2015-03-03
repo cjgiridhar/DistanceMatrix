@@ -3,7 +3,13 @@
 Audience
 ========
 
-This document is intended for developers who wish to compute travel distance and time between a number of points using the Google Maps API.
+This document is intended for developers who wish to compute travel distance between two cities
+
+Method 
+======
+
+- Google Distanc Matrix API of Google Maps
+- Haversine Method
 
 Pre-Requisites
 ===============
