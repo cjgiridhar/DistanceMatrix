@@ -1,5 +1,6 @@
 package main;
 
+
 import com.jayway.restassured.path.json.JsonPath;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -16,13 +17,15 @@ import java.io.IOException;
  */
 public class ApacheHttp {
 
+
     public double getDistance(Double latitudeSrc, Double longitudeSrc,
-                              Double latitudeDst, Double longitudeDst){
+                            Double latitudeDst, Double longitudeDst) throws IOException {
 
         // Create default httpclient object
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         try {
+
 
             String host = "maps.googleapis.com";
             String protocol = "https";
@@ -32,11 +35,13 @@ public class ApacheHttp {
             // Create httpclient target object
             HttpHost target = new HttpHost(host, port, protocol);
 
+
             // Construct http(s) request for the target
-            HttpGet getRequest = new HttpGet( api +
+            HttpGet getRequest = new HttpGet("/maps/api/distancematrix/json?" +
                     "origins=" + latitudeSrc + "," + longitudeSrc +
                     "&destinations=" + latitudeDst + "," + longitudeDst +
                     "&language=en-EN");
+
             System.out.println("executing request to " + target);
 
             // Execute the https request and get the response
@@ -44,6 +49,10 @@ public class ApacheHttp {
             HttpEntity entity = httpResponse.getEntity();
 
             // Return the http response code
+            System.out.println("----------------------------------------");
+//            System.out.println("Response: ");
+//            System.out.println(httpResponse.getStatusLine());
+
             // System.out.println(httpResponse.getStatusLine());
 
             if (entity != null) {
@@ -52,7 +61,7 @@ public class ApacheHttp {
 
                 JsonPath jp = new JsonPath(response);
                 // System.out.println("API Status is: " + jp.get("rows[0].elements[0].status"));
-                String distance =  jp.get("rows[0].elements[0].distance.text");
+                String distance = jp.get("rows[0].elements[0].distance.text");
                 return Double.parseDouble(distance.split(" ")[0]);
             }
 
@@ -90,13 +99,13 @@ public class ApacheHttp {
     }
 
 
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Throwable {
 
         ApacheHttp apacheHttp = new ApacheHttp();
 
         // Get the distance between 
-        Double distance = apacheHttp.getDistance(37.342194,-121.955200, 41.43206,-81.38992);
+
+        Double distance = apacheHttp.getDistance(37.342194, -121.955200, 41.43206, -81.38992);
         System.out.println("Distance between locations (kms): " + distance);
 
         Double haverSine = apacheHttp.haverSine(12.9667, 77.5667, 37.6189, -122.3750);
@@ -105,4 +114,6 @@ public class ApacheHttp {
         Double distance1 = apacheHttp.getDistance(55.930385, -3.118425, 50.087692, 14.421150);
         System.out.println("Distance between locations (kms): " + distance1);
     }
+
 }
+
