@@ -9,6 +9,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.simple.JSONObject;
 
 import java.io.IOException;
 
@@ -18,14 +19,14 @@ import java.io.IOException;
 public class ApacheHttp {
 
 
-    public double getDistance(Double latitudeSrc, Double longitudeSrc,
+    public JSONObject googleMatrix(Double latitudeSrc, Double longitudeSrc,
                             Double latitudeDst, Double longitudeDst) throws IOException {
 
         // Create default httpclient object
         DefaultHttpClient httpclient = new DefaultHttpClient();
+        JSONObject json = new JSONObject();
 
         try {
-
 
             String host = "maps.googleapis.com";
             String protocol = "https";
@@ -50,19 +51,26 @@ public class ApacheHttp {
 
             // Return the http response code
             System.out.println("----------------------------------------");
-//            System.out.println("Response: ");
-//            System.out.println(httpResponse.getStatusLine());
-
             // System.out.println(httpResponse.getStatusLine());
 
             if (entity != null) {
                 String response = EntityUtils.toString(entity);
-                // System.out.println("Entity is: " + response);
-
                 JsonPath jp = new JsonPath(response);
-                // System.out.println("API Status is: " + jp.get("rows[0].elements[0].status"));
-                String distance = jp.get("rows[0].elements[0].distance.text");
-                return Double.parseDouble(distance.split(" ")[0]);
+
+//                System.out.println("API Status is: " + jp.get("rows[0].elements[0].status"));
+//                String distance = jp.get("rows[0].elements[0].distance.text");
+//                return Double.parseDouble(distance.split(" ")[0]);
+
+                String status = jp.get("rows[0].elements[0].status");
+                json.put("status", status);
+
+                if(status.equalsIgnoreCase("null")) {
+                    json.put("distance", jp.get("rows[0].elements[0].distance.text"));
+                }
+                else {
+                    json.put("distance","0");
+                }
+
             }
 
         } catch (ClientProtocolException e) {
@@ -73,9 +81,8 @@ public class ApacheHttp {
             httpclient.getConnectionManager().shutdown();
         }
 
-        return -1;
+        return json;
     }
-
 
     public double haverSine(Double latitudeSrc, Double longitudeSrc,
                               Double latitudeDst, Double longitudeDst){
@@ -95,24 +102,61 @@ public class ApacheHttp {
 
         double d = R * c;
 
-        return d;
+        return d/1000;
     }
 
+    public Double getDistance(JSONObject from, JSONObject to) throws Throwable{
+        System.out.println("Data type is: " + from.get("latitude").getClass());
+
+
+        Double latitudeSrc = Double.parseDouble(from.get("latitude").toString());
+        Double longitudeSrc = Double.parseDouble(from.get("longitude").toString());
+
+        Double latitudeDst = Double.parseDouble(to.get("latitude").toString());
+        Double longitudeDst = Double.parseDouble(to.get("longitude").toString());
+
+        System.out.println("PARAMS ARE: " + latitudeSrc.toString() + longitudeSrc.toString()
+        + latitudeDst.toString() + longitudeDst.toString());
+
+        JSONObject googleJson = googleMatrix(latitudeSrc, latitudeDst, longitudeSrc, longitudeDst);
+
+        if(googleJson.get("status").toString().equalsIgnoreCase("NOT_FOUND") ||
+                googleJson.get("status").toString().equalsIgnoreCase("ZERO_RESULTS")){
+            return haverSine(latitudeSrc, longitudeSrc, latitudeDst, longitudeDst);
+        }
+
+        return Double.parseDouble(googleJson.get("status").toString());
+    }
 
     public static void main(String[] args) throws Throwable {
 
         ApacheHttp apacheHttp = new ApacheHttp();
 
-        // Get the distance between 
+//        JSONObject googleJson = apacheHttp.googleMatrix(37.342194, -121.955200, 41.43206, -81.38992);
+//        System.out.println("Distance between locations (kms): " + googleJson.toString());
+//
+//        Double haverSine = apacheHttp.haverSine(12.9667, 77.5667, 37.6189, -122.3750);
+//        System.out.println("HaverSine Distance between Bangalore amd SFO (kms): " + haverSine/1000);
 
-        Double distance = apacheHttp.getDistance(37.342194, -121.955200, 41.43206, -81.38992);
-        System.out.println("Distance between locations (kms): " + distance);
+//        Double distance1 = apacheHttp.googleMatrix(55.930385, -3.118425, 50.087692, 14.421150);
+//        System.out.println("Distance between locations (kms): " + distance1);
 
-        Double haverSine = apacheHttp.haverSine(12.9667, 77.5667, 37.6189, -122.3750);
-        System.out.println("HaverSine Distance between Bangalore amd SFO (kms): " + haverSine/1000);
+        JSONObject jsonSrc = new JSONObject();
+        jsonSrc.put("city","Bangalore");
+        jsonSrc.put("country","India");
+        jsonSrc.put("latitude","12.9667");
+        jsonSrc.put("longitude","77.5667");
 
-        Double distance1 = apacheHttp.getDistance(55.930385, -3.118425, 50.087692, 14.421150);
-        System.out.println("Distance between locations (kms): " + distance1);
+        JSONObject jsonDst = new JSONObject();
+        jsonDst.put("city","SFO");
+        jsonDst.put("country","USA");
+        jsonDst.put("latitude","37.6189");
+        jsonDst.put("longitude","-122.3750");
+
+        Double dist = apacheHttp.getDistance(jsonSrc, jsonDst);
+        System.out.println("Distance between locations (kms): " + dist);
+
+
     }
 
 }
