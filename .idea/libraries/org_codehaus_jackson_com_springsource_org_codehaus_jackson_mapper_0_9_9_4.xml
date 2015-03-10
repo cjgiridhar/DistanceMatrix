@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="org.codehaus.jackson:com.springsource.org.codehaus.jackson.mapper:0.9.9.4" type="repository">
+    <properties maven-id="org.codehaus.jackson:com.springsource.org.codehaus.jackson.mapper:0.9.9.4" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/codehaus/jackson/com.springsource.org.codehaus.jackson.mapper/0.9.9.4/com.springsource.org.codehaus.jackson.mapper-0.9.9.4.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/codehaus/jackson/com.springsource.org.codehaus.jackson/0.9.9.4/com.springsource.org.codehaus.jackson-0.9.9.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

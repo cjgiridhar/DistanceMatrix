@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 public class ApacheHttp {
 
-
+    // Gets distance between two cities using Google Distance Matrix
     public JSONObject googleMatrix(Double latitudeSrc, Double longitudeSrc,
                             Double latitudeDst, Double longitudeDst) throws IOException {
 
@@ -84,6 +84,73 @@ public class ApacheHttp {
         return json;
     }
 
+    // Gets distance between two cities using Google Distance Matrix
+    public JSONObject googleMatrix(String srcCity, String srcCountry,
+                                   String dstCity, String dstCountry) throws IOException {
+
+        // Create default httpclient object
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        JSONObject json = new JSONObject();
+
+        try {
+
+            String host = "maps.googleapis.com";
+            String protocol = "https";
+            Integer port = 443;
+            String api = "/maps/api/distancematrix/json?";
+
+            // Create httpclient target object
+            HttpHost target = new HttpHost(host, port, protocol);
+
+
+            // Construct http(s) request for the target
+            HttpGet getRequest = new HttpGet("/maps/api/distancematrix/json?" +
+                    "origins=" + srcCity + "," + srcCountry +
+                    "&destinations=" + dstCity + "," + dstCountry +
+                    "&language=en-EN");
+
+            System.out.println("executing request to " + target);
+
+            // Execute the https request and get the response
+            HttpResponse httpResponse = httpclient.execute(target, getRequest);
+            HttpEntity entity = httpResponse.getEntity();
+
+            // Return the http response code
+            System.out.println("----------------------------------------");
+            // System.out.println(httpResponse.getStatusLine());
+
+            if (entity != null) {
+                String response = EntityUtils.toString(entity);
+                JsonPath jp = new JsonPath(response);
+
+//                System.out.println("API Status is: " + jp.get("rows[0].elements[0].status"));
+//                String distance = jp.get("rows[0].elements[0].distance.text");
+//                return Double.parseDouble(distance.split(" ")[0]);
+
+                String status = jp.get("rows[0].elements[0].status");
+                json.put("status", status);
+
+                if(status.equalsIgnoreCase("null")) {
+                    json.put("distance", jp.get("rows[0].elements[0].distance.text"));
+                }
+                else {
+                    json.put("distance","0");
+                }
+
+            }
+
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            httpclient.getConnectionManager().shutdown();
+        }
+
+        return json;
+    }
+
+    // Gets distance between two points on the globe using HaverSine Method
     public double haverSine(Double latitudeSrc, Double longitudeSrc,
                               Double latitudeDst, Double longitudeDst){
 
@@ -105,6 +172,8 @@ public class ApacheHttp {
         return d/1000;
     }
 
+    // Gets two JSON Objects as Params that has long,lat and city, country names
+    // Goes for google api method first, if it fails, goes for Haversine method
     public Double getDistance(JSONObject from, JSONObject to) throws Throwable{
         System.out.println("Data type is: " + from.get("latitude").getClass());
 
